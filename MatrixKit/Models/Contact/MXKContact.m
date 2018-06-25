@@ -25,6 +25,7 @@ NSString *const kMXKContactThumbnailUpdateNotification = @"kMXKContactThumbnailU
 NSString *const kMXKContactLocalContactPrefixId = @"Local_";
 NSString *const kMXKContactMatrixContactPrefixId = @"Matrix_";
 NSString *const kMXKContactDefaultContactPrefixId = @"Default_";
+NSString *const kMXKContactO365ContactPrefixId = @"O365_";
 
 @interface MXKContact()
 {
@@ -282,6 +283,28 @@ NSString *const kMXKContactDefaultContactPrefixId = @"Default_";
         _phoneNumbers = phones;
         
         contactThumbnail = thumbnail;
+    }
+    
+    return self;
+}
+
+- (id)initContactWithO365DisplayName:(NSString *)displayName listEmails:(NSArray<NSString *> *)emails {
+    self = [self init];
+    
+    if (self) {
+        _contactID = [NSString stringWithFormat:@"%@%@", kMXKContactO365ContactPrefixId, [[NSUUID UUID] UUIDString]];
+        
+        if (displayName) {
+            _displayName = displayName;
+        }
+        
+        NSMutableArray *mxEmails = [[NSMutableArray alloc] initWithCapacity:emails.count];
+        for (NSString *email in emails) {
+            MXKEmail *mxEmail = [[MXKEmail alloc] initWithEmailAddress:email type:@"other" contactID:_contactID matrixID:nil];
+            [mxEmails addObject:mxEmail];
+        }
+        
+        _emailAddresses = mxEmails;
     }
     
     return self;

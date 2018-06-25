@@ -129,6 +129,8 @@ typedef NS_ENUM(NSInteger, MXKContactManagerMXRoomSource) {
 
 @property (nonatomic, readonly) NSArray *localContactsSplitByContactMethod;
 
+@property (nonatomic, readonly) NSArray *o365ContactsByMethod;
+
 /**
  The current list of the contacts for whom a direct chat exists.
  */
@@ -151,6 +153,11 @@ typedef NS_ENUM(NSInteger, MXKContactManagerMXRoomSource) {
  Load and/or refresh the local contacts. Observe kMXKContactManagerDidUpdateLocalContactsNotification to know when local contacts are available.
  */
 - (void)refreshLocalContacts;
+
+/**
+ Load and/or refresh Office 365 contacts
+ */
+- (void)refreshO365ContactsWithDictionary: (NSDictionary *)dictionary;
 
 /**
  Delete contacts info

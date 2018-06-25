@@ -68,6 +68,8 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
     NSMutableDictionary* matrixContactByContactID;
     // Matrix contacts by matrix id
     NSMutableDictionary* matrixContactByMatrixID;
+    
+    NSMutableArray *o365Contacts;
 }
 
 /**
@@ -127,6 +129,7 @@ static MXKContactManager* sharedMXKContactManager = nil;
     matrixContactByContactID = nil;
     matrixContactByMatrixID = nil;
     
+    o365Contacts = nil;
     lastSyncDate = nil;
     
     while (mxSessionArray.count) {
@@ -399,6 +402,18 @@ static MXKContactManager* sharedMXKContactManager = nil;
     return splitLocalContacts;
 }
 
+- (NSArray *)o365ContactsByMethod {
+//    if (o365Contacts == nil) {
+//        o365Contacts = [[NSMutableArray alloc] initWithCapacity:3];
+//        for (NSInteger i = 0 ; i < 3; i++) {
+//            NSString *disn = [NSString stringWithFormat:@"Sinbad-%ld", i + 1];
+//            NSString *em = [NSString stringWithFormat:@"sinbadflyce%ld@gmail.com", i + 1];
+//            MXKContact *contact = [[MXKContact alloc] initContactWithO365DisplayName:disn listEmails:@[em]];
+//            [o365Contacts addObject:contact];
+//        }
+//    }
+    return o365Contacts;
+}
 
 //- (void)localContactsSplitByContactMethod:(void (^)(NSArray<MXKContact*> *localContactsSplitByContactMethod))onComplete
 //{
@@ -573,12 +588,37 @@ static MXKContactManager* sharedMXKContactManager = nil;
 
 #pragma mark -
 
+- (void)refreshO365ContactsWithDictionary: (NSDictionary *)dictionary {
+    
+    if (dictionary != nil) {
+        NSArray *contacts = [dictionary objectForKey:@"contacts"];
+        
+        if (contacts.count) {
+            
+            o365Contacts = [[NSMutableArray alloc] initWithCapacity:contacts.count];
+            
+            for (NSDictionary * childDict in contacts) {
+                NSString *displayName = [childDict objectForKey:@"displayName"];
+                NSArray *emailAddresses = [childDict objectForKey:@"emailAddresses"];
+                NSMutableArray *listEmails = [[NSMutableArray alloc] initWithCapacity:emailAddresses.count];
+                
+                for (NSDictionary *addressDict in emailAddresses) {
+                    NSString *email = [addressDict objectForKey:@"address"];
+                    [listEmails addObject:email];
+                }
+                
+                MXKContact *contact = [[MXKContact alloc] initContactWithO365DisplayName:displayName listEmails:listEmails];
+                [o365Contacts addObject:contact];
+            }
+        }
+        [self cacheO365Contacts];
+    } else {
+        [self loadCachedO365Contacts];
+    }
+}
+
 - (void)refreshLocalContacts
 {
-    NSLog(@"[MXKContactManager] refreshLocalContacts : Started");
-    
-    NSDate *startDate = [NSDate date];
-    
     __weak typeof(self) weakSelf = self;
     [MXKTools checkAccessForContacts:nil showPopUpInViewController:nil completionHandler:^(BOOL granted) {
 
@@ -599,9 +639,6 @@ static MXKContactManager* sharedMXKContactManager = nil;
             [self cacheLocalContacts];
             
             [[NSNotificationCenter defaultCenter] postNotificationName:kMXKContactManagerDidUpdateLocalContactsNotification object:nil userInfo:nil];
-            
-            NSLog(@"[MXKContactManager] refreshLocalContacts : Complete");
-            NSLog(@"[MXKContactManager] refreshLocalContacts : Local contacts access denied");
         }
         else if (weakSelf)
         {
@@ -745,8 +782,6 @@ static MXKContactManager* sharedMXKContactManager = nil;
                         [strongSelf updateMatrixIDsForAllLocalContacts];
                     }
                     
-                    NSLog(@"[MXKContactManager] refreshLocalContacts : Complete");
-                    NSLog(@"[MXKContactManager] refreshLocalContacts : Refresh %tu local contacts in %.0fms", localContactByContactID.count, [[NSDate date] timeIntervalSinceDate:startDate] * 1000);
                 });
             });
         }
@@ -1443,6 +1478,7 @@ static NSString *matrixContactsFile = @"matrixContacts";
 static NSString *matrixIDsDictFile = @"matrixIDsDict";
 static NSString *localContactsFile = @"localContacts";
 static NSString *contactsBookInfoFile = @"contacts";
+static NSString *o365ContactsFile = @"o365Contacts";
 
 - (NSString*)dataFilePathForComponent:(NSString*)component
 {
@@ -1649,6 +1685,43 @@ static NSString *contactsBookInfoFile = @"contacts";
     if (!localContactByContactID)
     {
         localContactByContactID = [[NSMutableDictionary alloc] init];
+    }
+}
+
+- (void)cacheO365Contacts {
+    NSString *dataFilePath = [self dataFilePathForComponent:o365ContactsFile];
+    
+    if (o365Contacts && o365Contacts.count > 0) {
+        NSMutableData *theData = [NSMutableData data];
+        NSKeyedArchiver *encoder = [[NSKeyedArchiver alloc] initForWritingWithMutableData:theData];
+        
+        [encoder encodeObject:o365Contacts forKey:@"o365ContactByMethod"];
+        [encoder finishEncoding];
+        [theData writeToFile:dataFilePath atomically:YES];
+
+    } else {
+        NSFileManager *fileManager = [[NSFileManager alloc] init];
+        [fileManager removeItemAtPath:dataFilePath error:nil];
+    }
+}
+
+- (void)loadCachedO365Contacts {
+    NSString *dataFilePath = [self dataFilePathForComponent:o365ContactsFile];
+    NSFileManager *fileManager = [[NSFileManager alloc] init];
+    
+    if ([fileManager fileExistsAtPath:dataFilePath]) {
+        @try {
+            NSData* filecontent = [NSData dataWithContentsOfFile:dataFilePath options:(NSDataReadingMappedAlways | NSDataReadingUncached) error:nil];
+            NSKeyedUnarchiver *decoder = [[NSKeyedUnarchiver alloc] initForReadingWithData:filecontent];
+            id object = [decoder decodeObjectForKey:@"o365ContactByMethod"];
+            
+            if ([object isKindOfClass:[NSArray class]]) {
+                o365Contacts = [object mutableCopy];
+            }
+            [decoder finishDecoding];
+
+        } @catch (NSException * exception) {
+        }
     }
 }
 

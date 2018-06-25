@@ -33,6 +33,7 @@ extern NSString *const kMXKContactThumbnailUpdateNotification;
 extern NSString *const kMXKContactLocalContactPrefixId;
 extern NSString *const kMXKContactMatrixContactPrefixId;
 extern NSString *const kMXKContactDefaultContactPrefixId;
+extern NSString *const kMXKContactO365ContactPrefixId;
 
 @interface MXKContact : MXKCellData <NSCoding>
 
@@ -139,6 +140,11 @@ extern NSString *const kMXKContactDefaultContactPrefixId;
                     phoneNumbers:(NSArray<MXKPhoneNumber*> *)phones
                     andThumbnail:(UIImage *)thumbnail;
 
+/**
+ Create a contact with the Office 365 info
+ */
+- (id)initContactWithO365DisplayName:(NSString*)displayName
+                          listEmails: (NSArray<NSString *> *)emails;
 /**
  The contact thumbnail with a prefered size.
  
