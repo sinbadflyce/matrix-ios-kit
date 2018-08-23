@@ -1,9 +1,36 @@
-Changes in MatrixKit in 0.7.15 ()
+Changes in MatrixKit in 0.8.1 (2018-08-17)
 ==========================================
 
 Improvements:
+ * Upgrade MatrixSDK version (v0.11.1).
+
+Changes in MatrixKit in 0.8.0 (2018-08-10)
+==========================================
+
+Improvements:
+ * Upgrade MatrixSDK version (v0.11.0).
+ * MXKRoomDataSource: Add send reply with text message (vector-im/riot-ios#1911).
+ * MXKSessionRecentsDataSource: Hide rooms that should not be displayed to user (linked to vector-im/riot-ios#1938).
+ * MXKRoomDataSource: Fix a multithreading issue that caused a crash (PR #456).
+ 
+Bug fix:
+ * MXKSampleJSQMessagesViewController: Fix room display assertion when user has no display name.
+
+API break:
+ * MXKContactManager: Remove the privateMatrixContacts method.
+ * MXKSearchCellDataStoring: Replace initWithSearchResult by async cellDataWithSearchResult.
+ * MXKRoomDataSourceManager: The roomDataSourceForRoom method is now asynchronous.
+ * MXKRoomDataSourceManager: closeRoomDataSource has been replaced by closeRoomDataSourceWithRoomId.
+
+Changes in MatrixKit in 0.7.15 (2018-07-03)
+==========================================
+
+Improvements:
+ * Upgrade MatrixSDK version (v0.10.12).
  * MXKWebViewVC: enableDebug: support multiple parameters in console.* logs methods.
  * Add MXKBarButtonItem, UIBarButtonItem subclass with convenient action block.
+ * MXKRoomDataSource: Make processingQueue public so that overidding class can use it.
+ * MXKRoomBubbleCellData: add a readReceipts member to cache read receipts data.
  
 Bug fix:
 

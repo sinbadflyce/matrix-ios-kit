@@ -1,6 +1,7 @@
 /*
  Copyright 2015 OpenMarket Ltd
  Copyright 2017 Vector Creations Ltd
+ Copyright 2018 New Vector Ltd
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -115,6 +116,11 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
 @property (nonatomic, readonly) MXRoom *room;
 
 /**
+ The preloaded room.state.
+ */
+@property (nonatomic, readonly) MXRoomState *roomState;
+
+/**
  The timeline being managed. It can be the live timeline of the room
  or a timeline from a past event, initialEventId.
  */
@@ -216,6 +222,50 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
 @property (nonatomic) BOOL filterMessagesWithURL;
 
 #pragma mark - Life cycle
+
+/**
+ Asynchronously create a data source to serve data corresponding to the passed room.
+
+ This method preloads room data, like the room state, to make it available once
+ the room data source is created.
+
+ @param roomId the id of the room to get data from.
+ @param mxSession the Matrix session to get data from.
+ @param onComplete a block providing the newly created instance.
+ */
++ (void)loadRoomDataSourceWithRoomId:(NSString*)roomId andMatrixSession:(MXSession*)mxSession onComplete:(void (^)(id roomDataSource))onComplete;
+
+/**
+ Asynchronously create adata source to serve data corresponding to an event in the
+ past of a room.
+
+ This method preloads room data, like the room state, to make it available once
+ the room data source is created.
+
+ @param roomId the id of the room to get data from.
+ @param initialEventId the id of the event where to start the timeline.
+ @param mxSession the Matrix session to get data from.
+ @param onComplete a block providing the newly created instance.
+ */
++ (void)loadRoomDataSourceWithRoomId:(NSString*)roomId initialEventId:(NSString*)initialEventId andMatrixSession:(MXSession*)mxSession onComplete:(void (^)(id roomDataSource))onComplete;
+
+/**
+ Asynchronously create a data source to peek into a room.
+
+ The data source will close the `peekingRoom` instance on [self destroy].
+
+ This method preloads room data, like the room state, to make it available once
+ the room data source is created.
+
+ @param peekingRoom the room to peek.
+ @param initialEventId the id of the event where to start the timeline. nil means the live
+                       timeline.
+ @param onComplete a block providing the newly created instance.
+ */
++ (void)loadRoomDataSourceWithPeekingRoom:(MXPeekingRoom*)peekingRoom andInitialEventId:(NSString*)initialEventId onComplete:(void (^)(id roomDataSource))onComplete;
+
+#pragma mark - Constructors (Should not be called directly)
+
 /**
  Initialise the data source to serve data corresponding to the passed room.
  
@@ -345,6 +395,25 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
 - (void)sendTextMessage:(NSString*)text
                 success:(void (^)(NSString *eventId))success
                 failure:(void (^)(NSError *error))failure;
+
+/**
+ Send a reply to an event with text message to the room.
+ 
+ While sending, a fake event will be echoed in the messages list.
+ Once complete, this local echo will be replaced by the event saved by the homeserver.
+ 
+ @param eventIdToReply the id of event to reply.
+ @param text the text to send.
+ @param success A block object called when the operation succeeds. It returns
+ the event id of the event generated on the home server
+ @param failure A block object called when the operation fails.
+ */
+- (void)sendReplyToEventWithId:(NSString*)eventIdToReply
+               withTextMessage:(NSString *)text
+                       success:(void (^)(NSString *))success
+                       failure:(void (^)(NSError *))failure;
+
+- (BOOL)canReplyToEventWithId:(NSString*)eventIdToReply;
 
 /**
  Send an image to the room.
@@ -492,6 +561,15 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
  By default, they are added to the end of the timeline.
  */
 - (void)handleUnsentMessages;
+
+#pragma mark - Asynchronous events processing
+/**
+ The dispatch queue to process room messages.
+ 
+ This processing can consume time. Handling it on a separated thread avoids to block the main thread.
+ All MXKRoomDataSource instances share the same dispatch queue.
+ */
++ (dispatch_queue_t)processingQueue;
 
 #pragma mark - Bubble collapsing
 

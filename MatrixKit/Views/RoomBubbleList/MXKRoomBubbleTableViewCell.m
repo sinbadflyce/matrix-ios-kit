@@ -26,6 +26,7 @@
 #import "MXKConstants.h"
 
 #import "NSBundle+MatrixKit.h"
+#import "MXRoom+Sync.h"
 
 #pragma mark - Constant definitions
 NSString *const kMXKRoomBubbleCellTapOnMessageTextView = @"kMXKRoomBubbleCellTapOnMessageTextView";
@@ -639,30 +640,27 @@ static BOOL _disableLongPressGestureOnEvent;
                         {
                             NSMutableArray* roomMembers = nil;
                             NSMutableArray* placeholders = nil;
-                            NSArray* receipts = nil;
-                            
-                            MXRoom* room = [bubbleData.mxSession roomWithRoomId:bubbleData.roomId];
-                            
-                            // Get the events receipts by ignoring the current user receipt.
-                            if (room)
-                            {
-                                receipts = [room getEventReceipts:component.event.eventId sorted:YES];
-                            }
+                            NSArray<MXReceiptData*> *receipts = bubbleData.readReceipts[component.event.eventId];
                             
                             // Check whether some receipts are found
                             if (receipts.count)
                             {
-                                // Retrieve the corresponding room members
-                                roomMembers = [[NSMutableArray alloc] initWithCapacity:receipts.count];
-                                placeholders = [[NSMutableArray alloc] initWithCapacity:receipts.count];
-                                
-                                for (MXReceiptData* data in receipts)
+                                MXRoom* room = [bubbleData.mxSession roomWithRoomId:bubbleData.roomId];
+                                if (room)
                                 {
-                                    MXRoomMember * roomMember = [room.state memberWithUserId:data.userId];
-                                    if (roomMember)
+                                    // Retrieve the corresponding room members
+                                    roomMembers = [[NSMutableArray alloc] initWithCapacity:receipts.count];
+                                    placeholders = [[NSMutableArray alloc] initWithCapacity:receipts.count];
+
+                                    MXRoomMembers *stateRoomMembers = room.dangerousSyncState.members;
+                                    for (MXReceiptData* data in receipts)
                                     {
-                                        [roomMembers addObject:roomMember];
-                                        [placeholders addObject:self.picturePlaceholder];
+                                        MXRoomMember * roomMember = [stateRoomMembers memberWithUserId:data.userId];
+                                        if (roomMember)
+                                        {
+                                            [roomMembers addObject:roomMember];
+                                            [placeholders addObject:self.picturePlaceholder];
+                                        }
                                     }
                                 }
                             }
