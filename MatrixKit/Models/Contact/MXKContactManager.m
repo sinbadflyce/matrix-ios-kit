@@ -683,13 +683,16 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
                             {
                                 // ignore unchanged contacts since the previous sync
                                 CFDateRef lastModifDate = ABRecordCopyValue(contactRecord, kABPersonModificationDateProperty);
-                                if (kCFCompareGreaterThan != CFDateCompare (lastModifDate, (__bridge CFDateRef)self->lastSyncDate, nil))
-
+                                if (lastModifDate)
                                 {
+                                    if (kCFCompareGreaterThan != CFDateCompare(lastModifDate, (__bridge CFDateRef)self->lastSyncDate, nil))
+
+                                    {
+                                        CFRelease(lastModifDate);
+                                        continue;
+                                    }
                                     CFRelease(lastModifDate);
-                                    continue;
                                 }
-                                CFRelease(lastModifDate);
                             }
 
                             didContactBookChange = YES;
