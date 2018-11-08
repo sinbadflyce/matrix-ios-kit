@@ -2268,7 +2268,7 @@ NSString *const kMXKRoomDataSourceTimelineErrorErrorKey = @"kMXKRoomDataSourceTi
                         {
                             // The event has not been concatenated to an existing cell, create a new bubble for this event
                             bubbleData = [[class alloc] initWithEvent:queuedEvent.event andRoomState:queuedEvent.state andRoomDataSource:self];
-                            if (!bubbleData)
+                            if (!bubbleData || queuedEvent.event.decryptionError /* CK: ignores un-decrypted message*/)
                             {
                                 // The event is ignored
                                 continue;
