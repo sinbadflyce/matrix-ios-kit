@@ -60,6 +60,7 @@
 		B12C470C20BECAF8004FBF96 /* MXKErrorViewModel.m in Sources */ = {isa = PBXBuildFile; fileRef = B12C470920BECAF7004FBF96 /* MXKErrorViewModel.m */; };
 		B12C470D20BECAF8004FBF96 /* MXKErrorAlertPresentation.m in Sources */ = {isa = PBXBuildFile; fileRef = B12C470A20BECAF7004FBF96 /* MXKErrorAlertPresentation.m */; };
 		B12C471020BED312004FBF96 /* MXKErrorPresentableBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = B12C470F20BED312004FBF96 /* MXKErrorPresentableBuilder.m */; };
+		B13652F8221E9E7A00313B09 /* MXKMessageTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = B13652F7221E9E7A00313B09 /* MXKMessageTextView.m */; };
 		B164380C210603CD00DBB3FD /* MXKSendReplyEventStringLocalizations.m in Sources */ = {isa = PBXBuildFile; fileRef = B164380B210603CD00DBB3FD /* MXKSendReplyEventStringLocalizations.m */; };
 		B1668AC021072F93002B14F1 /* MXKSlashCommands.m in Sources */ = {isa = PBXBuildFile; fileRef = B1668ABF21072F93002B14F1 /* MXKSlashCommands.m */; };
 		CE14CA661E80122600E329A3 /* MXKAttachmentAnimator.m in Sources */ = {isa = PBXBuildFile; fileRef = CE14CA631E80122600E329A3 /* MXKAttachmentAnimator.m */; };
@@ -349,6 +350,8 @@
 		B12C470B20BECAF7004FBF96 /* MXKErrorPresentable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MXKErrorPresentable.h; sourceTree = "<group>"; };
 		B12C470E20BED312004FBF96 /* MXKErrorPresentableBuilder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MXKErrorPresentableBuilder.h; sourceTree = "<group>"; };
 		B12C470F20BED312004FBF96 /* MXKErrorPresentableBuilder.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MXKErrorPresentableBuilder.m; sourceTree = "<group>"; };
+		B13652F6221E9E7A00313B09 /* MXKMessageTextView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MXKMessageTextView.h; sourceTree = "<group>"; };
+		B13652F7221E9E7A00313B09 /* MXKMessageTextView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MXKMessageTextView.m; sourceTree = "<group>"; };
 		B164380A210603CD00DBB3FD /* MXKSendReplyEventStringLocalizations.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MXKSendReplyEventStringLocalizations.h; sourceTree = "<group>"; };
 		B164380B210603CD00DBB3FD /* MXKSendReplyEventStringLocalizations.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MXKSendReplyEventStringLocalizations.m; sourceTree = "<group>"; };
 		B1668ABE21072F93002B14F1 /* MXKSlashCommands.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MXKSlashCommands.h; sourceTree = "<group>"; };
@@ -865,6 +868,8 @@
 				F0868E0A1B18FC01004CBE80 /* MXKRoomCreationView.h */,
 				F0868E0B1B18FC01004CBE80 /* MXKRoomCreationView.m */,
 				F0868E0C1B18FC01004CBE80 /* MXKRoomCreationView.xib */,
+				B13652F6221E9E7A00313B09 /* MXKMessageTextView.h */,
+				B13652F7221E9E7A00313B09 /* MXKMessageTextView.m */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1474,7 +1479,7 @@
 		3219CB601AA6F2780027D7E2 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 1020;
 				ORGANIZATIONNAME = matrix.org;
 				TargetAttributes = {
 					3203F2671D2E9CAE0021F170 = {
@@ -1492,7 +1497,7 @@
 			};
 			buildConfigurationList = 3219CB631AA6F2780027D7E2 /* Build configuration list for PBXProject "MatrixKit" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
@@ -1720,6 +1725,7 @@
 				F0FDF2671E53586A00D23C47 /* MXKCountryPickerViewController.m in Sources */,
 				B12C471020BED312004FBF96 /* MXKErrorPresentableBuilder.m in Sources */,
 				F00FA85C1C0867F900E25826 /* MXKRoomIncomingAttachmentBubbleCell.m in Sources */,
+				B13652F8221E9E7A00313B09 /* MXKMessageTextView.m in Sources */,
 				F04356311B2EF6FD0096FA02 /* MXKContactDetailsViewController.m in Sources */,
 				F00FA8751C08A51B00E25826 /* MXKRoomOutgoingAttachmentWithoutSenderInfoBubbleCell.m in Sources */,
 				329CF77B1AA9FDE000A4753F /* MXKRoomIOSBubbleTableViewCell.m in Sources */,
@@ -1913,20 +1919,32 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -1955,13 +1973,23 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
@@ -1969,6 +1997,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -1991,10 +2020,10 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = 7J4U792NQT;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/Samples/MatrixKitSample/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.matrix.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -2007,10 +2036,10 @@
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = 7J4U792NQT;
-				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/Samples/MatrixKitSample/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.matrix.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";

@@ -278,12 +278,19 @@ NSString *const kMXKRecentCellIdentifier = @"kMXKRecentCellIdentifier";
         
         if (index < internalCellDataArray.count)
         {
-            // Create a new instance to not modify the content of 'cellDataArray' (the copy is not a deep copy).
-            Class class = [self cellDataClassForCellIdentifier:kMXKRecentCellIdentifier];
-            id<MXKRecentCellDataStoring> cellData = [[class alloc] initWithRoomSummary:roomSummary andRecentListDataSource:self];
-            if (cellData)
+            if (roomSummary.hiddenFromUser)
             {
-                [internalCellDataArray replaceObjectAtIndex:index withObject:cellData];
+                [internalCellDataArray removeObjectAtIndex:index];
+            }
+            else
+            {
+                // Create a new instance to not modify the content of 'cellDataArray' (the copy is not a deep copy).
+                Class class = [self cellDataClassForCellIdentifier:kMXKRecentCellIdentifier];
+                id<MXKRecentCellDataStoring> cellData = [[class alloc] initWithRoomSummary:roomSummary andRecentListDataSource:self];
+                if (cellData)
+                {
+                    [internalCellDataArray replaceObjectAtIndex:index withObject:cellData];
+                }
             }
             
             // Report change except if sync is in progress
@@ -404,7 +411,14 @@ NSString *const kMXKRecentCellIdentifier = @"kMXKRecentCellIdentifier";
 - (id<MXKRecentCellDataStoring>)cellDataWithRoomId:(NSString*)roomId
 {
     id<MXKRecentCellDataStoring> theRoomData;
-    for (id<MXKRecentCellDataStoring> roomData in cellDataArray)
+    
+    NSMutableArray *dataArray = internalCellDataArray;
+    if (!roomDataSourceManager.isServerSyncInProgress)
+    {
+        dataArray = cellDataArray;
+    }
+    
+    for (id<MXKRecentCellDataStoring> roomData in dataArray)
     {
         if ([roomData.roomSummary.roomId isEqualToString:roomId])
         {

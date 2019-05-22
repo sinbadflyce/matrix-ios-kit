@@ -1,3 +1,60 @@
+Changes in MatrixKit in 0.9.9 (2019-xx-xx)
+==========================================
+
+Improvements:
+ * Upgrade MatrixSDK version ([v0.12.5](https://github.com/matrix-org/matrix-ios-sdk/releases/tag/v0.12.5)).
+ * Upgraded to Xcode 10.2, fixed most of the compiler warnings, thanks to @tladesignz (PR #536).
+ * MXKReceiptSendersContainer: Add possibility to customize `more label` text color (PR #539).
+ * MXKEncryptionInfoView: Make it easier to customise.
+ * MXKRoomViewController: remove the implicit retains of "self".
+
+Bug fix:
+ * Fix some potential crashes with ivar using a weak self (PR #537).
+ * MXKSessionRecentsDataSource: Hide a room if needed on room summary change (vector-im/riot-ios/issues/2148).
+ * MXKAttachmentsViewController: Fix some retain cycles (PR #544).
+
+Changes in MatrixKit in 0.9.8 (2019-03-21)
+==========================================
+
+Improvements:
+ * Upgrade MatrixSDK version ([v0.12.4](https://github.com/matrix-org/matrix-ios-sdk/releases/tag/v0.12.4)).
+
+Bug fix:
+ * MXKRoomBubbleTableViewCell: Fix tap on file attachment when using a messageTextView of class `MXKMessageTextView` (PR #532).
+ * MXKContactManager: some matrix contacts are missing in the search result (offline mode).
+
+Changes in MatrixKit in 0.9.7 (2019-03-13)
+==========================================
+
+Bug fix:
+ * A left room is stuck in my joined room (vector-im/riot-ios/issues/2318).
+
+Changes in MatrixKit in 0.9.6 (2019-03-08)
+==========================================
+
+Improvements:
+ * Upgrade MatrixSDK version ([v0.12.3](https://github.com/matrix-org/matrix-ios-sdk/releases/tag/v0.12.3)).
+ * Use new MXLoginResponse class.
+ * Add `MXKMessageTextView` an UITextView with link detection without text selection.
+
+Bug fix:
+ * Handle device_id returned from the fallback login page (vector-im/riot-ios/issues/2301).
+ * Room details: the attachments list is empty (or almost) for the encrypted rooms.
+ * Quickly tapping on a URL in a message highlights the message rather than opening the URL (vector-im/riot-ios/issues/728).
+
+Changes in MatrixKit in 0.9.5 (2019-02-15)
+==========================================
+
+Improvements:
+ * Upgrade MatrixSDK version (v0.12.2).
+ * MXKTableViewCellWithButton: Remove all controls events on the button in [self prepareForReuse].
+
+Changes in MatrixKit in 0.9.4 (2019-01-05)
+==========================================
+
+Improvements:
+ * Chat screen: `Redact` has been renamed to `Remove` to match riot/web (vector-im/riot-ios/issues/2134).
+
 Changes in MatrixKit in 0.9.3 (2019-01-08)
 ==========================================
 

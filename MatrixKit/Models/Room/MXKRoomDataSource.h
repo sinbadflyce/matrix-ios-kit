@@ -140,6 +140,7 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
 /**
  The list of the attachments with thumbnail in the current available bubbles (MXKAttachment instances).
  Note: the stickers are excluded from the returned list.
+ Note2: the attachments for which the antivirus scan status is not available are excluded too.
  */
 @property (nonatomic, readonly) NSArray *attachmentsWithThumbnail;
 
@@ -389,7 +390,7 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
 
  @param text the text to send.
  @param success A block object called when the operation succeeds. It returns
-                the event id of the event generated on the home server
+                the event id of the event generated on the homeserver
  @param failure A block object called when the operation fails.
  */
 - (void)sendTextMessage:(NSString*)text
@@ -405,7 +406,7 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
  @param eventIdToReply the id of event to reply.
  @param text the text to send.
  @param success A block object called when the operation succeeds. It returns
- the event id of the event generated on the home server
+ the event id of the event generated on the homeserver
  @param failure A block object called when the operation fails.
  */
 - (void)sendReplyToEventWithId:(NSString*)eventIdToReply
@@ -423,7 +424,7 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
 
  @param image the UIImage containing the image to send.
  @param success A block object called when the operation succeeds. It returns
-                the event id of the event generated on the home server
+                the event id of the event generated on the homeserver
  @param failure A block object called when the operation fails.
  */
 - (void)sendImage:(UIImage*)image
@@ -439,7 +440,7 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
  @param imageData the full-sized image data of the image to send.
  @param mimetype the mime type of the image
  @param success A block object called when the operation succeeds. It returns
- the event id of the event generated on the home server
+ the event id of the event generated on the homeserver
  @param failure A block object called when the operation fails.
  */
 - (void)sendImage:(NSData*)imageData mimeType:(NSString*)mimetype success:(void (^)(NSString *))success failure:(void (^)(NSError *))failure;
@@ -453,7 +454,7 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
  @param videoLocalURL the local filesystem path of the video to send.
  @param videoThumbnail the UIImage hosting a video thumbnail.
  @param success A block object called when the operation succeeds. It returns
-                the event id of the event generated on the home server
+                the event id of the event generated on the homeserver
  @param failure A block object called when the operation fails.
  */
 - (void)sendVideo:(NSURL*)videoLocalURL
@@ -470,7 +471,7 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
  @param fileLocalURL the local filesystem path of the file to send.
  @param mimeType the mime type of the file.
  @param success A block object called when the operation succeeds. It returns
- the event id of the event generated on the home server
+ the event id of the event generated on the homeserver
  @param failure A block object called when the operation fails.
  */
 - (void)sendFile:(NSURL*)fileLocalURL
@@ -486,7 +487,7 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
 
  @param content the message content that will be sent to the server as a JSON object.
  @param success A block object called when the operation succeeds. It returns
-                the event id of the event generated on the home server
+                the event id of the event generated on the homeserver
  @param failure A block object called when the operation fails.
  */
 - (void)sendMessageWithContent:(NSDictionary*)content
@@ -502,7 +503,7 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
  @param eventTypeString the type of the event. @see MXEventType.
  @param content the content that will be sent to the server as a JSON object.
  @param success A block object called when the operation succeeds. It returns
-                the event id of the event generated on the home server
+                the event id of the event generated on the homeserver
  @param failure A block object called when the operation fails.
  */
 - (void)sendEventOfType:(MXEventTypeString)eventTypeString
@@ -518,7 +519,7 @@ extern NSString *const kMXKRoomDataSourceTimelineErrorErrorKey;
 
  @param eventId of the event to resend.
  @param success A block object called when the operation succeeds. It returns
-                the event id of the event generated on the home server
+                the event id of the event generated on the homeserver
  @param failure A block object called when the operation fails.
  */
 - (void)resendEventWithEventId:(NSString*)eventId
