@@ -105,4 +105,14 @@ extern NSString *const kMXKSearchCellDataIdentifier;
  */
 - (void)convertHomeserverResultsIntoCells:(MXSearchRoomEventResults*)roomEventResults onComplete:(dispatch_block_t)onComplete;
 
+/**
+ CK: Set datasource state
+ */
+- (void)setState:(MXKDataSourceState)newState;
+
+/**
+ CK: Do search
+ */
+- (void)doSearch;
+
 @end
