@@ -103,97 +103,116 @@
 
 - (void)startActivityIndicator
 {
-    // create the views if they don't exist
-    if (!waitingDownloadSpinner)
-    {
-        waitingDownloadSpinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
+    dispatch_block_t block = ^{
         
-        CGRect frame = waitingDownloadSpinner.frame;
-        frame.size.width += 30;
-        frame.size.height += 30;
-        waitingDownloadSpinner.bounds = frame;
-        [waitingDownloadSpinner.layer setCornerRadius:5];
-    }
-    
-    if (!loadingView)
-    {
-        loadingView = [[UIView alloc] init];
-        loadingView.frame = waitingDownloadSpinner.bounds;
-        waitingDownloadSpinner.frame = waitingDownloadSpinner.bounds;
-        [loadingView addSubview:waitingDownloadSpinner];
-        loadingView.backgroundColor = [UIColor clearColor];
-        [self addSubview:loadingView];
-    }
-    
-    if (!pieChartView)
-    {
-        pieChartView = [[MXKPieChartView alloc] init];
-        pieChartView.frame = loadingView.bounds;
+        // create the views if they don't exist
+        if (!waitingDownloadSpinner)
+        {
+            waitingDownloadSpinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
+            
+            CGRect frame = waitingDownloadSpinner.frame;
+            frame.size.width += 30;
+            frame.size.height += 30;
+            waitingDownloadSpinner.bounds = frame;
+            [waitingDownloadSpinner.layer setCornerRadius:5];
+        }
+        
+        if (!loadingView)
+        {
+            loadingView = [[UIView alloc] init];
+            loadingView.frame = waitingDownloadSpinner.bounds;
+            waitingDownloadSpinner.frame = waitingDownloadSpinner.bounds;
+            [loadingView addSubview:waitingDownloadSpinner];
+            loadingView.backgroundColor = [UIColor clearColor];
+            [self addSubview:loadingView];
+        }
+        
+        if (!pieChartView)
+        {
+            pieChartView = [[MXKPieChartView alloc] init];
+            pieChartView.frame = loadingView.bounds;
+            pieChartView.progress = 0;
+            pieChartView.progressColor = [UIColor colorWithRed:1 green:1 blue:1 alpha:0.25];
+            pieChartView.unprogressColor = [UIColor clearColor];
+            
+            [loadingView addSubview:pieChartView];
+        }
+        
+        // display the download statistics
+        if (_fullScreen && !progressInfoLabel)
+        {
+            progressInfoLabel = [[UILabel alloc] init];
+            progressInfoLabel.backgroundColor = [UIColor whiteColor];
+            progressInfoLabel.textColor = [UIColor blackColor];
+            progressInfoLabel.font = [UIFont systemFontOfSize:8];
+            progressInfoLabel.alpha = 0.25;
+            progressInfoLabel.text = @"";
+            progressInfoLabel.numberOfLines = 0;
+            [progressInfoLabel sizeToFit];
+            [self addSubview:progressInfoLabel];
+        }
+        
+        // initvalue
+        loadingView.hidden = NO;
         pieChartView.progress = 0;
-        pieChartView.progressColor = [UIColor colorWithRed:1 green:1 blue:1 alpha:0.25];
-        pieChartView.unprogressColor = [UIColor clearColor];
         
-        [loadingView addSubview:pieChartView];
-    }
-    
-    // display the download statistics
-    if (_fullScreen && !progressInfoLabel)
-    {
-        progressInfoLabel = [[UILabel alloc] init];
-        progressInfoLabel.backgroundColor = [UIColor whiteColor];
-        progressInfoLabel.textColor = [UIColor blackColor];
-        progressInfoLabel.font = [UIFont systemFontOfSize:8];
-        progressInfoLabel.alpha = 0.25;
-        progressInfoLabel.text = @"";
-        progressInfoLabel.numberOfLines = 0;
-        [progressInfoLabel sizeToFit];
-        [self addSubview:progressInfoLabel];
-    }
-    
-    // initvalue
-    loadingView.hidden = NO;
-    pieChartView.progress = 0;
-    
-    // Adjust color
-    if ([self.backgroundColor isEqual:[UIColor blackColor]])
-    {
-        waitingDownloadSpinner.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhite;
-        // a preview image could be displayed
-        // ensure that the white spinner is visible
-        // it could be drawn on a white area
-        waitingDownloadSpinner.backgroundColor = [UIColor darkGrayColor];
+        // Adjust color
+        if ([self.backgroundColor isEqual:[UIColor blackColor]])
+        {
+            waitingDownloadSpinner.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhite;
+            // a preview image could be displayed
+            // ensure that the white spinner is visible
+            // it could be drawn on a white area
+            waitingDownloadSpinner.backgroundColor = [UIColor darkGrayColor];
+            
+        }
+        else
+        {
+            waitingDownloadSpinner.activityIndicatorViewStyle = UIActivityIndicatorViewStyleGray;
+        }
         
+        // ensure that the spinner is drawn at the top
+        [loadingView.superview bringSubviewToFront:loadingView];
+        
+        // Adjust position
+        CGPoint center = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
+        loadingView.center = center;
+        
+        // Start
+        [waitingDownloadSpinner startAnimating];
+    };
+    
+    if ([NSThread isMainThread]) {
+        block();
     }
-    else
-    {
-        waitingDownloadSpinner.activityIndicatorViewStyle = UIActivityIndicatorViewStyleGray;
+    else {
+        dispatch_async(dispatch_get_main_queue(), block);
     }
-    
-    // ensure that the spinner is drawn at the top
-    [loadingView.superview bringSubviewToFront:loadingView];
-    
-    // Adjust position
-    CGPoint center = CGPointMake(self.frame.size.width / 2, self.frame.size.height / 2);
-    loadingView.center = center;
-    
-    // Start
-    [waitingDownloadSpinner startAnimating];
 }
 
 - (void)stopActivityIndicator
 {
-    if (waitingDownloadSpinner && waitingDownloadSpinner.isAnimating)
-    {
-        [waitingDownloadSpinner stopAnimating];
+    dispatch_block_t block = ^{
+        if (waitingDownloadSpinner && waitingDownloadSpinner.isAnimating)
+        {
+            [waitingDownloadSpinner stopAnimating];
+        }
+        
+        pieChartView.progress = 0;
+        loadingView.hidden = YES;
+        
+        if (progressInfoLabel)
+        {
+            [progressInfoLabel removeFromSuperview];
+            progressInfoLabel = nil;
+        }
+    };
+    
+    if ([NSThread isMainThread]) {
+        block();
     }
-    
-    pieChartView.progress = 0;
-    loadingView.hidden = YES;
-    
-    if (progressInfoLabel)
-    {
-        [progressInfoLabel removeFromSuperview];
-        progressInfoLabel = nil;
+    else {
+        dispatch_async(dispatch_get_main_queue(), block);
     }
 }
 
