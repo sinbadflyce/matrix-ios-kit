@@ -125,8 +125,8 @@ extension MXKUTI {
     convenience init?(localFileURL: URL, loadResourceValues: Bool = true) {
         if loadResourceValues,
             let _ = try? FileManager.default.contentsOfDirectory(at: localFileURL.deletingLastPathComponent(), includingPropertiesForKeys: [.typeIdentifierKey], options: []),
-            let uti = try? localFileURL.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier, let uti1 = uti  {
-            self.init(rawValue: uti1)
+            let uti = try? localFileURL.resourceValues(forKeys: [.typeIdentifierKey]).typeIdentifier {
+            self.init(rawValue: uti)
         } else if localFileURL.pathExtension.isEmpty == false {
             let fileExtension = localFileURL.pathExtension
             self.init(fileExtension: fileExtension)

@@ -73,10 +73,6 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
     NSMutableArray *o365Contacts;
 }
 
-/**
- The current REST client defined with the identity server.
- */
-@property (nonatomic) MXRestClient *identityRESTClient;
 @end
 
 @implementation MXKContactManager
@@ -113,6 +109,8 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
         // Observe related settings change
         [[MXKAppSettings standardAppSettings]  addObserver:self forKeyPath:@"syncLocalContacts" options:0 context:nil];
         [[MXKAppSettings standardAppSettings]  addObserver:self forKeyPath:@"phonebookCountryCode" options:0 context:nil];
+
+        [self registerAccountDataDidChangeIdentityServerNotification];
     }
     
     return self;
@@ -137,8 +135,6 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
     }
     mxSessionArray = nil;
     mxEventListeners = nil;
-    _identityServer = nil;
-    _identityRESTClient = nil;
     
     [[MXKAppSettings standardAppSettings] removeObserver:self forKeyPath:@"syncLocalContacts"];
     [[MXKAppSettings standardAppSettings] removeObserver:self forKeyPath:@"phonebookCountryCode"];
@@ -261,9 +257,6 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
             [self refreshMatrixContacts];
         });
     }
-    
-    // Lookup the matrix users in all the local contacts.
-    [self updateMatrixIDsForAllLocalContacts];
 }
 
 - (void)removeMatrixSession:(MXSession*)mxSession
@@ -276,9 +269,6 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
         
         [mxEventListeners removeObjectAtIndex:index];
         [mxSessionArray removeObjectAtIndex:index];
-        
-        // Reset the current rest client (It will be rebuild if need)
-        _identityRESTClient = nil;
         
         if (!mxSessionArray.count) {
             if (mxSessionStateObserver) {
@@ -498,55 +488,18 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
     return directContacts.allValues;
 }
 
-- (void)setIdentityServer:(NSString *)identityServer
+// The current identity service used with the contact manager
+- (MXIdentityService*)identityService
 {
-    _identityServer = identityServer;
-    
-    if (identityServer)
-    {
-        MXCredentials *credentials = [MXCredentials new];
-        credentials.identityServer = identityServer;
-
-        _identityRESTClient = [[MXRestClient alloc] initWithCredentials:credentials andOnUnrecognizedCertificateBlock:nil];
-        
-        // Lookup the matrix users in all the local contacts.
-        [self updateMatrixIDsForAllLocalContacts];
-    }
-    else
-    {
-        _identityRESTClient = nil;
-    }
-}
-
-- (MXRestClient*)identityRESTClient
-{
-    if (!_identityRESTClient)
-    {
-        if (self.identityServer)
-        {
-            MXCredentials *credentials = [MXCredentials new];
-            credentials.identityServer = self.identityServer;
-
-            _identityRESTClient = [[MXRestClient alloc] initWithCredentials:credentials andOnUnrecognizedCertificateBlock:nil];
-        }
-        else if (mxSessionArray.count)
-        {
-            MXSession *mxSession = [mxSessionArray firstObject];
-
-            MXCredentials *credentials = [MXCredentials new];
-            credentials.identityServer = mxSession.matrixRestClient.identityServer;
-
-            _identityRESTClient = [[MXRestClient alloc] initWithCredentials:credentials andOnUnrecognizedCertificateBlock:nil];
-        }
-    }
-    
-    return _identityRESTClient;
+    // For the moment, only use the one of the first session
+    MXSession *mxSession = [mxSessionArray firstObject];
+    return mxSession.identityService;
 }
 
 - (BOOL)isUsersDiscoveringEnabled
 {
     // Check whether the 3pid lookup is available
-    return (self.discoverUsersBoundTo3PIDsBlock || self.identityRESTClient);
+    return (self.discoverUsersBoundTo3PIDsBlock || self.identityService);
 }
 
 #pragma mark -
@@ -856,9 +809,9 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
             else
             {
                 // Consider the potential identity server url by default
-                [self.identityRESTClient lookup3pids:lookup3pidsArray
-                                             success:success
-                                             failure:failure];
+                [self.identityService lookup3pids:lookup3pidsArray
+                                          success:success
+                                          failure:failure];
             }
         }
     }
@@ -867,6 +820,10 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
 
 - (void)updateMatrixIDsForAllLocalContacts
 {
+    // If localContactByContactID is not loaded, the manager will consider there is no local contacts
+    // and will reset its cache
+    NSAssert(localContactByContactID, @"[MXKContactManager] updateMatrixIDsForAllLocalContacts: refreshLocalContacts must be called before");
+
     // Check if the user allowed to sync local contacts.
     // + Check if at least an identity server is available, and if the loading step is not in progress.
     if (![MXKAppSettings standardAppSettings].syncLocalContacts || ![self isUsersDiscoveringEnabled] || isLocalContactListRefreshing)
@@ -967,11 +924,17 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
             {
                 self.discoverUsersBoundTo3PIDsBlock(lookup3pidsArray, success, failure);
             }
+            else if (self.identityService)
+            {
+                [self.identityService lookup3pids:lookup3pidsArray
+                                          success:success
+                                          failure:failure];
+            }
             else
             {
-                [self.identityRESTClient lookup3pids:lookup3pidsArray
-                                             success:success
-                                             failure:failure];
+                // No IS, no detection of Matrix users in local contacts
+                self->matrixIDBy3PID = nil;
+                [self cacheMatrixIDsDict];
             }
         }
         else
@@ -979,6 +942,19 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
             self->matrixIDBy3PID = nil;
             [self cacheMatrixIDsDict];
         }
+    });
+}
+
+- (void)resetMatrixIDs
+{
+    dispatch_async(processingQueue, ^{
+        
+        self->matrixIDBy3PID = nil;
+        [self cacheMatrixIDsDict];
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[NSNotificationCenter defaultCenter] postNotificationName:kMXKContactManagerDidUpdateLocalContactMatrixIDsNotification object:nil userInfo:nil];
+        });
     });
 }
 
@@ -1005,8 +981,6 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
     }
     mxSessionArray = nil;
     mxEventListeners = nil;
-    _identityServer = nil;
-    _identityRESTClient = nil;
     
     // warn of the contacts list update
     [[NSNotificationCenter defaultCenter] postNotificationName:kMXKContactManagerDidUpdateMatrixContactsNotification object:nil userInfo:nil];
@@ -1504,6 +1478,46 @@ NSString *const kMXKContactManagerDidInternationalizeNotification = @"kMXKContac
     
     return user;
 }
+
+
+#pragma mark - Identity Server updates
+
+- (void)registerAccountDataDidChangeIdentityServerNotification
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleAccountDataDidChangeIdentityServerNotification:) name:kMXSessionAccountDataDidChangeIdentityServerNotification object:nil];
+}
+
+- (void)handleAccountDataDidChangeIdentityServerNotification:(NSNotification*)notification
+{
+    NSLog(@"[MXKContactManager] handleAccountDataDidChangeIdentityServerNotification");
+
+    // Use the identity server of the up
+    MXSession *mxSession = notification.object;
+    if (mxSession != mxSessionArray.firstObject)
+    {
+        return;
+    }
+
+    if (self.identityService)
+    {
+        // Do a full lookup
+        // But check first if the data is loaded
+        if (!self->localContactByContactID )
+        {
+            // Load data. That will trigger updateMatrixIDsForAllLocalContacts if needed
+            [self refreshLocalContacts];
+        }
+        else
+        {
+            [self updateMatrixIDsForAllLocalContacts];
+        }
+    }
+    else
+    {
+        [self resetMatrixIDs];
+    }
+}
+
 
 #pragma mark - KVO
 
